@@ -1,163 +1,91 @@
 
 # ============================================
 # Network Troubleshooting Toolkit
-# Version: 1.0
+# Main Launcher
 # Author: Youssef Yahya
-# Platform: Windows PowerShell
+# Version: 1.1
 # ============================================
 
-Clear-Host
-
-$ReportFolder = Join-Path $PSScriptRoot "Reports"
-
-if (-not (Test-Path $ReportFolder)) {
-    New-Item -ItemType Directory -Path $ReportFolder -Force | Out-Null
-}
+$ErrorActionPreference = "Continue"
 
 function Show-Header {
     Clear-Host
+
     Write-Host "============================================" -ForegroundColor Cyan
     Write-Host "       NETWORK TROUBLESHOOTING TOOLKIT" -ForegroundColor Green
     Write-Host "============================================" -ForegroundColor Cyan
-    Write-Host "        Developed by Youssef Yahya" -ForegroundColor Yellow
+    Write-Host "          Developed by Youssef Yahya" -ForegroundColor Yellow
     Write-Host "============================================" -ForegroundColor Cyan
 }
 
-function Show-SystemInfo {
-    Show-Header
-    Write-Host "`nSYSTEM INFORMATION" -ForegroundColor Yellow
+function Start-Tool {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FileName
+    )
 
-    Get-CimInstance Win32_OperatingSystem |
-        Select-Object CSName, Caption, Version, OSArchitecture
+    $ToolPath = Join-Path $PSScriptRoot $FileName
 
-    Get-CimInstance Win32_Processor |
-        Select-Object -First 1 Name
-
-    Write-Host "`nPress any key to continue..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-}
-
-function Show-NetworkInfo {
-    Show-Header
-    Write-Host "`nNETWORK CONFIGURATION" -ForegroundColor Yellow
-
-    Get-NetIPConfiguration |
-        Format-List InterfaceAlias, IPv4Address, IPv4DefaultGateway, DNSServer
-
-    Write-Host "`nPress any key to continue..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-}
-
-function Test-InternetConnection {
-    Show-Header
-    Write-Host "`nINTERNET CONNECTIVITY TEST" -ForegroundColor Yellow
-
-    $targets = @("8.8.8.8", "1.1.1.1")
-
-    foreach ($target in $targets) {
-        Write-Host "`nTesting $target ..." -ForegroundColor Cyan
-
-        if (Test-Connection -ComputerName $target -Count 2 -Quiet -ErrorAction SilentlyContinue) {
-            Write-Host "Connection successful." -ForegroundColor Green
-        }
-        else {
-            Write-Host "No ping response. This does not always mean the internet is down." -ForegroundColor Red
-        }
+    if (-not (Test-Path $ToolPath -PathType Leaf)) {
+        Write-Host "`nTool file not found: $FileName" -ForegroundColor Red
+        Read-Host "Press Enter to return"
+        return
     }
-
-    Write-Host "`nPress any key to continue..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-}
-
-function Test-DNS {
-    Show-Header
-    Write-Host "`nDNS DIAGNOSTICS" -ForegroundColor Yellow
-
-    $domain = Read-Host "Enter domain name (example: google.com)"
 
     try {
-        Resolve-DnsName -Name $domain -ErrorAction Stop |
-            Select-Object Name, Type, IPAddress |
-            Format-Table -AutoSize
+        & $ToolPath
     }
     catch {
-        Write-Host "DNS lookup failed: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "`nAn error occurred while running the tool:" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Yellow
+        Read-Host "Press Enter to return"
     }
 
-    Write-Host "`nPress any key to continue..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    if ($FileName -eq "NetworkInfo.ps1") {
+        Read-Host "`nPress Enter to return to the main menu"
+    }
 }
 
-function Create-NetworkReport {
+while ($true) {
+
     Show-Header
-    Write-Host "`nGENERATING NETWORK REPORT" -ForegroundColor Yellow
 
-    $date = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-    $reportPath = Join-Path $ReportFolder "NetworkReport_$date.txt"
+    Write-Host "`n1. Network Adapter Information"
+    Write-Host "2. Network Connectivity Test"
+    Write-Host "3. DNS Diagnostics"
+    Write-Host "4. Generate Network Report"
+    Write-Host "5. Exit"
 
-    "NETWORK TROUBLESHOOTING REPORT" | Out-File $reportPath
-    "Generated: $(Get-Date)" | Out-File $reportPath -Append
-    "`nSYSTEM INFORMATION" | Out-File $reportPath -Append
+    Write-Host "`n============================================" -ForegroundColor Cyan
 
-    Get-CimInstance Win32_OperatingSystem |
-        Format-List CSName, Caption, Version, OSArchitecture |
-        Out-String | Out-File $reportPath -Append
+    $Choice = Read-Host "Select an option (1-5)"
 
-    "`nNETWORK CONFIGURATION" | Out-File $reportPath -Append
+    switch ($Choice) {
 
-    Get-NetIPConfiguration |
-        Format-List InterfaceAlias, IPv4Address, IPv4DefaultGateway, DNSServer |
-        Out-String | Out-File $reportPath -Append
+        "1" {
+            Start-Tool "NetworkInfo.ps1"
+        }
 
-    "`nDNS TEST" | Out-File $reportPath -Append
+        "2" {
+            Start-Tool "ConnectivityTest.ps1"
+        }
 
-    try {
-        Resolve-DnsName google.com -ErrorAction Stop |
-            Format-Table -AutoSize |
-            Out-String | Out-File $reportPath -Append
-    }
-    catch {
-        "DNS lookup failed." | Out-File $reportPath -Append
-    }
+        "3" {
+            Start-Tool "DNSDiagnostics.ps1"
+        }
 
-    Write-Host "`nReport saved successfully:" -ForegroundColor Green
-    Write-Host $reportPath -ForegroundColor Cyan
+        "4" {
+            Start-Tool "NetworkReport.ps1"
+        }
 
-    Write-Host "`nPress any key to continue..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-}
+        "5" {
+            Write-Host "`nThank you for using Network Toolkit!" -ForegroundColor Green
+            return
+        }
 
-function Show-Menu {
-    while ($true) {
-        Show-Header
-
-        Write-Host "`n1. System Information"
-        Write-Host "2. Network Configuration"
-        Write-Host "3. Internet Connectivity Test"
-        Write-Host "4. DNS Diagnostics"
-        Write-Host "5. Generate Network Report"
-        Write-Host "6. Exit"
-
-        Write-Host "`n============================================" -ForegroundColor Cyan
-
-        $choice = Read-Host "Select an option (1-6)"
-
-        switch ($choice) {
-            "1" { Show-SystemInfo }
-            "2" { Show-NetworkInfo }
-            "3" { Test-InternetConnection }
-            "4" { Test-DNS }
-            "5" { Create-NetworkReport }
-            "6" {
-                Write-Host "`nThank you for using Network Toolkit!" -ForegroundColor Green
-                return
-            }
-            default {
-                Write-Host "`nInvalid choice. Please try again." -ForegroundColor Red
-                Start-Sleep -Seconds 2
-            }
+        default {
+            Write-Host "`nInvalid option. Please try again." -ForegroundColor Red
+            Start-Sleep -Seconds 2
         }
     }
 }
-
-Show-Menu
