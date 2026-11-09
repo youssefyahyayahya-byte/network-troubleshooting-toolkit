@@ -49,41 +49,45 @@ function Start-Tool {
 while ($true) {
 
     Show-Header
-
-    Write-Host "`n1. Network Adapter Information"
-    Write-Host "2. Network Connectivity Test"
-    Write-Host "3. DNS Diagnostics"
-    Write-Host "4. Generate Network Report"
-    Write-Host "5. Exit"
+    Write-Host "`n1. System Information"
+    Write-Host "2. Network Adapter Information"
+    Write-Host "3. Network Connectivity Test"
+    Write-Host "4. DNS Diagnostics"
+    Write-Host "5. Generate Network Report"
+    Write-Host "6. Exit"
 
     Write-Host "`n============================================" -ForegroundColor Cyan
 
-    $Choice = Read-Host "Select an option (1-5)"
+    $Choice = Read-Host "Select an option (1-6)"
 
     switch ($Choice) {
 
         "1" {
-            Start-Tool "NetworkInfo.ps1"
+            Start-Tool "SystemInfo.ps1"
         }
 
         "2" {
-            Start-Tool "ConnectivityTest.ps1"
+            Start-Tool "NetworkInfo.ps1"
         }
 
         "3" {
-            Start-Tool "DNSDiagnostics.ps1"
+            Start-Tool "ConnectivityTest.ps1"
         }
 
         "4" {
-            Start-Tool "NetworkReport.ps1"
+            Start-Tool "DNSDiagnostics.ps1"
         }
 
         "5" {
+            Start-Tool "NetworkReport.ps1"
+        }
+
+        "6" {
             Write-Host "`nThank you for using Network Toolkit!" -ForegroundColor Green
             return
         }
 
-        default {
+        default  {
             Write-Host "`nInvalid option. Please try again." -ForegroundColor Red
             Start-Sleep -Seconds 2
         }
