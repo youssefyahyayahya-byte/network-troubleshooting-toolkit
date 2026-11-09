@@ -18,7 +18,7 @@ if ([string]::IsNullOrWhiteSpace($Domain) -or
 
     Write-Host "`nInvalid domain name." -ForegroundColor Red
     Read-Host "Press Enter to exit"
-    exit
+    return
 }
 
 Write-Host "`nChecking DNS server configuration..." -ForegroundColor Yellow
