@@ -16,7 +16,7 @@ $Adapters = Get-NetAdapter -ErrorAction SilentlyContinue
 
 if (-not $Adapters) {
     Write-Host "No network adapters found or command unavailable." -ForegroundColor Red
-    exit
+    return
 }
 
 foreach ($Adapter in $Adapters) {
