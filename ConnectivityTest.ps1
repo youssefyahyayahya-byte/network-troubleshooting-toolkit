@@ -14,7 +14,7 @@ $Target = Read-Host "`nEnter IP Address or Hostname"
 
 if ([string]::IsNullOrWhiteSpace($Target) -or $Target -match '[\s/\\]') {
     Write-Host "`nInvalid input." -ForegroundColor Red
-    exit
+    return
 }
 
 Write-Host "`nResolving hostname..." -ForegroundColor Yellow
